@@ -1,41 +1,6 @@
 let restaurant;
-var newMap;
-
-/**
- * Initialize map as soon as the page is loaded.
- */
-document.addEventListener('DOMContentLoaded', (event) => {  
-  initMap();
-});
-
-/**
- * Initialize leaflet map
- */
-initMap = () => {
-  fetchRestaurantFromURL((error, restaurant) => {
-    if (error) { // Got an error!
-      console.error(error);
-    } else {      
-      self.newMap = L.map('map', {
-        center: [restaurant.latlng.lat, restaurant.latlng.lng],
-        zoom: 16,
-        scrollWheelZoom: false
-      });
-      L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
-        mapboxToken: '<your MAPBOX API KEY HERE>',
-        maxZoom: 18,
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
-          '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-          'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        id: 'mapbox.streets'    
-      }).addTo(newMap);
-      fillBreadcrumb();
-      DBHelper.mapMarkerForRestaurant(self.restaurant, self.newMap);
-    }
-  });
-}  
- 
-/* window.initMap = () => {
+var map;
+window.initMap = () => {
   fetchRestaurantFromURL((error, restaurant) => {
     if (error) { // Got an error!
       console.error(error);
@@ -49,11 +14,7 @@ initMap = () => {
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
     }
   });
-} */
-
-/**
- * Get current restaurant from page URL.
- */
+}
 fetchRestaurantFromURL = (callback) => {
   if (self.restaurant) { // restaurant already fetched!
     callback(null, self.restaurant)
@@ -61,7 +22,7 @@ fetchRestaurantFromURL = (callback) => {
   }
   const id = getParameterByName('id');
   if (!id) { // no id found in URL
-    error = 'No restaurant id in URL'
+    error = 'No restaurant id in URL';
     callback(error, null);
   } else {
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
@@ -71,7 +32,7 @@ fetchRestaurantFromURL = (callback) => {
         return;
       }
       fillRestaurantHTML();
-      callback(null, restaurant)
+      callback(null, restaurant);
     });
   }
 }
@@ -87,7 +48,8 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   address.innerHTML = restaurant.address;
 
   const image = document.getElementById('restaurant-img');
-  image.className = 'restaurant-img'
+  image.className = 'restaurant-img';
+  image.setAttribute('alt', 'An image of ' + restaurant.name + " restaurant in" + restaurant.neighborhoods)
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
 
   const cuisine = document.getElementById('restaurant-cuisine');
@@ -120,10 +82,6 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
     hours.appendChild(row);
   }
 }
-
-/**
- * Create all reviews HTML and add them to the webpage.
- */
 fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h2');
